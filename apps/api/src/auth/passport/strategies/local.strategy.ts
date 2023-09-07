@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+// @ts-ignore
 import { User } from '@prisma/client';
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {

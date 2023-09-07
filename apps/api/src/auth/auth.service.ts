@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { RegisterLocalDto } from './dto/register.local.dto';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { RegisterLocalDto } from './dto/register-local.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -14,9 +15,24 @@ export class AuthService {
   ) {}
   //Route Methods
   async RegisterLocal(body: RegisterLocalDto) {
-    if (this.prismaService.user.findUnique({ where: { id: body.email } })) {
-      return 'User already exists';
-    }
+    const exists = await this.prismaService.user.findFirst({
+      where: {
+        OR: [
+          { username: { equals: body.username, mode: 'insensitive' } },
+          { email: { equals: body.email, mode: 'insensitive' } },
+        ],
+      },
+    });
+    if (exists)
+      throw new HttpException('User already exists', HttpStatus.FORBIDDEN);
+    const user = await this.prismaService.user.create({
+      data: {
+        username: body.username,
+        email: body.email,
+        hashPass: await bcrypt.hash(body.password, 10),
+      },
+    });
+    return user;
   }
   //Utils
   async createAuthToken(userId: string): Promise<string> {
@@ -24,28 +40,20 @@ export class AuthService {
       { userId: userId },
       {
         secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-        expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+        expiresIn: '1h',
       },
     );
-    return Promise.resolve(
-      `Authentication=Bearer ${token}; Path=/; Max-Age=${this.configService.get(
-        'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
-      )}`,
-    );
+    return Promise.resolve(token);
   }
   async createRefreshToken(userId: string): Promise<string> {
     const token = await this.jwtService.signAsync(
       { userId: userId },
       {
         secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-        expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+        expiresIn: '3d',
       },
     );
-    return Promise.resolve(
-      `Refresh=${token}; Path=/; Max-Age=${this.configService.get(
-        'JWT_REFRESH_TOKEN_EXPIRATION_TIME',
-      )}`,
-    );
+    return Promise.resolve(token);
   }
 
   async genTokens(userId: string): Promise<{ at: string; rt: string }> {

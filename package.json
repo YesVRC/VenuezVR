@@ -16,8 +16,7 @@
   "name": "VenuezVR",
   "packageManager": "npm@9.2.0",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ],
   "dependencies": {
     "@nestjs/swagger": "^7.1.8"
