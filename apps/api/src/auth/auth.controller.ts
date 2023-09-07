@@ -1,17 +1,19 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { RegisterLocalDto } from './dto/register-local.dto';
 import { AuthService } from './auth.service';
-import { LocalGuard } from './passport/authguards/local.guard';
+import { LocalGuard } from './guards/local.guard';
 import e from 'express';
-import { JwtAuthGuard } from './passport/authguards/jwt.guard';
+import { JwtAuthGuard } from './guards/jwt.guard';
+import { LoginLocalDto } from './dto/login-local.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
   @Post('login')
   @UseGuards(LocalGuard)
-  async LoginLocal(@Req() req: e.Request) {
-    return req.user;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async LoginLocal(@Req() req: e.Request, @Body() body: LoginLocalDto) {
+    return await this.authService.genTokens(req.user['userId']);
   }
 
   @Post('register')
