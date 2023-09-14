@@ -5,6 +5,7 @@ import { User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import passport from 'passport';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +26,8 @@ export class AuthService {
     });
     if (exists)
       throw new HttpException('User already exists', HttpStatus.FORBIDDEN);
+    if(body.password.length < 8)
+      throw new HttpException('Password is too short', HttpStatus.BAD_REQUEST);
     const user = await this.prismaService.user.create({
       data: {
         username: body.username,
@@ -32,7 +35,7 @@ export class AuthService {
         hashPass: await bcrypt.hash(body.password, 10),
       },
     });
-    return user;
+    return await this.genTokens(user.id);
   }
   //Utils
   async createAuthToken(userId: string): Promise<string> {

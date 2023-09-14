@@ -5,6 +5,7 @@ import { LocalGuard } from './guards/local.guard';
 import e from 'express';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { LoginLocalDto } from './dto/login-local.dto';
+import {RequestUser} from "./types/request-user";
 
 @Controller('auth')
 export class AuthController {
@@ -23,7 +24,13 @@ export class AuthController {
 
   @Get('current')
   @UseGuards(JwtAuthGuard)
-  async GetCurrentUser(@Req() request: e.Request) {
+  async GetCurrentUser(@Req() request: RequestUser) {
     return request.user;
+  }
+
+  @Post('refresh')
+  @UseGuards(JwtAuthGuard)
+  async RefreshUserToken(@Req() request: RequestUser) {
+    return await this.authService.createAuthToken(request.user.id);
   }
 }

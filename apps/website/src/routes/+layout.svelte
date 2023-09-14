@@ -25,22 +25,24 @@
 		<AppBar>
 			<svelte:fragment slot="lead">
 				<a href='/'>
-					<strong class="text-xl uppercase hover:neon-text-error">Skeleton</strong>
+					<strong class="text-xl uppercase hover:neon-text-error">Venuez VR</strong>
 				</a>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<button use:popup={popupUser}>
 					<Avatar border="neon-surface hover:neon-error" cursor="cursor-pointer" initials={$userStore? $userStore.username[0] : 'V'} />
 				</button>
-				<div class="card p-4 w-36 shadow-xl variant-glass-surface flex-col py-1 h-fit" data-popup="popupUser">
+				<div class="card p-4 w-72 justify-center shadow-xl variant-glass-surface flex-col py-1 h-fit" data-popup="popupUser">
 					{#if $userStore == null}
 					<p class="py-2">Not Logged In</p>
+					<hr/>
 					<a href='/login' class='btn variant-glass-primary hover:neon-primary py-2'>Login</a>
 					{:else}
-					<p>Welcome {$userStore.username}</p>
-					{/if}
+					<p>{$userStore.username}</p>
 					<hr/>
-					<button on:click={async () => await logoutUser()}>Logout</button>
+					<button on:click={async () => await logoutUser()} class='py-1 my-2 variant-glass-primary btn neon-surface hover:neon-error'>Logout</button>
+					{/if}
+					
 					<div class="arrow bg-surface-100-800-token" />
 				</div>
 			</svelte:fragment>
